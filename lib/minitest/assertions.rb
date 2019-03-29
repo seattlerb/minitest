@@ -352,6 +352,21 @@ module Minitest
     end
 
     ##
+    # Fails unless the block raises +exp+ and +exp+'s message is equal to +msg+.
+    #
+    # +exp+ takes an optional message on the end to help explain
+    # failures and defaults to StandardError if no exception class is
+    # passed.
+
+    def assert_raises_with_message exp, exp_msg, msg = nil
+      e = assert_raises exp do
+        yield
+      end
+
+      assert_match Regexp.new(exp_msg), e.message, msg
+    end
+
+    ##
     # Fails unless +obj+ responds to +meth+.
 
     def assert_respond_to obj, meth, msg = nil
