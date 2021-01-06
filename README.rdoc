@@ -376,6 +376,49 @@ Using our example above, here is how we might implement MyCI:
 
 == FAQ
 
+== Easing the transition to Minitest 6
+
+Minitest has started issuing _DEPRECATED_ warn messages if you are using the global version of expectations.
+You might come across a similar warning such as:
+
+```
+DEPRECATED: global use of must_equal from ... Use _(obj).must_equal instead. This will fail in Minitest 6…
+```
+
+If you'd like to easily transition your codebase consider leveraging https://github.com/jonatas/fast/
+You can simply include a _Fastfile_ in the source of your repository with the contents of:
+
+```ruby
+Fast.shortcut(:minitest_upgrade) do
+  test_files = Fast.ruby_files_from('test')
+
+  test_files.each do |file_name|
+    puts "Doing Minitest 6 upgrade for #{file_name}"
+    begin
+      Fast.rewrite_file('(send _ { :must_equal :must_include :must_be :must_match :must_be_close_to :must_be_same_as :must_be_instance_of :must_be_kind_of :must_raise :wont_include :wont_equal :wont_match :wont_be } _)', file_name) do |node|
+        expected_ast_node = node.children[0]
+        # if this source line already is wrapped with expect(..) then do nothing
+        # s(:send, nil, :expect,
+        #  s(:send, nil, :build,
+        #   s(:lvar, :factory_name)), :valid?)), :must_equal,
+        if expected_ast_node.children[1] == :expect
+          next
+        end
+
+        expected_value_expression = expected_ast_node.location.expression
+        replace(expected_value_expression, "expect(#{expected_value_expression.source})")
+      end
+    rescue => e
+      puts "Failed to convert file: #{file_name} - #{e}"
+    end
+  end
+end
+```
+
+You can execute this on individual files now to replace via: `fast .minitest_upgrade FILE`
+
+> You will need to `gem install ffast`
+
 === How to test SimpleDelegates?
 
 The following implementation and test:
