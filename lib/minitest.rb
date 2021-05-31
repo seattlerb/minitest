@@ -50,6 +50,10 @@ module Minitest
   self.info_signal = "INFO"
 
   ##
+  # Access the minitest options for example to use the seed value in your tests.
+  mc.send :attr_accessor, :option
+
+  ##
   # Registers Minitest to run at process exit
 
   def self.autorun
@@ -126,6 +130,7 @@ module Minitest
     self.load_plugins unless args.delete("--no-plugins") || ENV["MT_NO_PLUGINS"]
 
     options = process_args args
+    self.option = options
 
     reporter = CompositeReporter.new
     reporter << SummaryReporter.new(options[:io], options)
