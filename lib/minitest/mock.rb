@@ -216,6 +216,7 @@ class Object
 
     metaclass = class << self; self; end
 
+    is_a_defined_method = methods.map(&:to_s).include? name.to_s
     if respond_to? name and not methods.map(&:to_s).include? name.to_s then
       metaclass.send :define_method, name do |*args|
         super(*args)
@@ -238,7 +239,7 @@ class Object
     yield self
   ensure
     metaclass.send :undef_method, name
-    metaclass.send :alias_method, name, new_name
+    metaclass.send :alias_method, name, new_name if is_a_defined_method
     metaclass.send :undef_method, new_name
   end
 end
