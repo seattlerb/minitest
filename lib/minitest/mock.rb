@@ -211,7 +211,7 @@ class Object
   # NOTE: keyword args in callables are NOT checked for correctness
   # against the existing method. Too many edge cases to be worth it.
 
-  def stub name, val_or_callable, *block_args
+  def stub name, val_or_callable, *block_args, **block_opts
     new_name = "__minitest_stub__#{name}"
 
     metaclass = class << self; self; end
@@ -224,11 +224,11 @@ class Object
 
     metaclass.send :alias_method, new_name, name
 
-    metaclass.send :define_method, name do |*args, &blk|
+    metaclass.send :define_method, name do |*args, **opts, &blk|
       if val_or_callable.respond_to? :call then
-        val_or_callable.call(*args, &blk)
+        val_or_callable.call(*args, **opts, &blk)
       else
-        blk.call(*block_args) if blk
+        blk.call(*block_args, **block_opts) if blk
         val_or_callable
       end
     end
