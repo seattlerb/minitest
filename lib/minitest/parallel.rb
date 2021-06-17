@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Minitest
   module Parallel #:nodoc:
 
@@ -18,6 +20,7 @@ module Minitest
         @size  = size
         @queue = Queue.new
         @pool  = nil
+        @reporter_mutex = Mutex.new
       end
 
       ##
@@ -29,9 +32,9 @@ module Minitest
             Thread.current.abort_on_exception = true
             while (job = queue.pop)
               klass, method, reporter = job
-              reporter.synchronize { reporter.prerecord klass, method }
+              @reporter_mutex.synchronize { reporter.prerecord klass, method }
               result = Minitest.run_one_method klass, method
-              reporter.synchronize { reporter.record result }
+              @reporter_mutex.synchronize { reporter.record result }
             end
           end
         }

@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "optparse"
 require "thread"
-require "mutex_m"
 require "minitest/parallel"
 require "stringio"
 
@@ -21,10 +22,6 @@ module Minitest
   # Parallel test executor
 
   mc.send :attr_accessor, :parallel_executor
-
-  warn "DEPRECATED: use MT_CPU instead of N for parallel test runs" if ENV["N"]
-  n_threads = (ENV["MT_CPU"] || ENV["N"] || 2).to_i
-  self.parallel_executor = Parallel::Executor.new n_threads
 
   ##
   # Filter object for backtraces.
@@ -161,8 +158,8 @@ module Minitest
     # the serial tests won't lock around Reporter#record. Run the serial tests
     # first, so that after they complete, the parallel tests will lock when
     # recording results.
-    serial.map { |suite| suite.run reporter, options } +
-      parallel.map { |suite| suite.run reporter, options }
+    serial.map { |suite| puts suite; suite.run reporter, options } #+
+      # parallel.map { |suite| suite.run reporter, options }
   end
 
   def self.process_args args = [] # :nodoc:
@@ -552,8 +549,6 @@ module Minitest
   # you want. Go nuts.
 
   class AbstractReporter
-    include Mutex_m
-
     ##
     # Starts reporting on the run.
 
